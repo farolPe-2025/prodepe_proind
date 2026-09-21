@@ -49,7 +49,10 @@ button{font-family:inherit}
 h1{font-weight:800;font-size:clamp(30px,4.6vw,54px);line-height:1.04;letter-spacing:-.04em;margin:0 0 16px;max-width:980px;color:var(--h1)}
 #st{margin:0 0 8px;color:var(--su);font-size:clamp(14.5px,1.6vw,17px);line-height:1.6;max-width:720px}
 .atual{margin:0;color:var(--su2);font-size:12.5px}
-.sec{margin:0 0 12px}
+.sec{margin:44px 0 14px}
+.sec:first-child{margin-top:0}
+.aviso{margin:12px 0 0;padding:11px 14px;border:1px solid var(--linha);border-left:3px solid #f7a600;border-radius:12px;background:var(--painel);color:var(--su);font-size:12.5px;line-height:1.5}
+.aviso b{color:var(--h1)}
 .sec .eyebrow{margin:0 0 6px;font-size:10.5px}
 .sec h2{margin:0;font-size:clamp(18px,2vw,22px);font-weight:700;letter-spacing:-.02em;color:var(--marca)}
 
@@ -188,8 +191,9 @@ footer p{margin:0 0 4px}
 .cols{display:flex;align-items:flex-end;gap:clamp(8px,3vw,28px);height:190px;padding-top:6px}
 .col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
 .col em{font-style:normal;font-size:11.5px;font-weight:700;color:var(--su)}
-.col u{display:block;width:100%;max-width:64px;min-height:2px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#f7a600,#e08e00);text-decoration:none;transition:height .3s}
-.col:not(.ult) u{background:linear-gradient(180deg,#1663d6,var(--marca))}
+.col u{display:block;width:100%;max-width:64px;min-height:2px;border-radius:8px 8px 3px 3px;background:#f7a600;text-decoration:none;transition:height .3s}
+.col:not(.ult) u{background:var(--marca)}
+[data-theme="dark"] .col:not(.ult) u{background:#4b91ed}
 .col span{font-size:11.5px;color:var(--su2);font-weight:600}
 .hb .li{display:grid;grid-template-columns:minmax(90px,.9fr) minmax(0,1.6fr) auto;gap:10px;align-items:center;padding:5px 0;font-size:12.5px}
 .hb .li .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
@@ -216,6 +220,7 @@ footer p{margin:0 0 4px}
     <div id="ind-slot"></div>
     <div class="sec"><p class="eyebrow"><i></i>Destaques</p><h2>Resultados da seleção atual</h2></div>
     <div id="kpis"></div>
+    <p class="aviso" id="aviso"></p>
     <div class="sec"><p class="eyebrow"><i></i>Território</p><h2>Distribuição por município</h2></div>
     <div id="mapwrap">
       <div class="mapatopo">
@@ -226,8 +231,13 @@ footer p{margin:0 0 4px}
       <div id="tip"></div>
     </div>
     <p class="dicamapa">Toque em um município para ver os valores. Deslize para os lados ou use + e − para ampliar.</p>
-    <div class="sec"><p class="eyebrow"><i></i>Perfil</p><h2>Evolução e composição</h2></div>
-    <div id="graficos"><div class="painel"><h3 id="g1t"></h3><div id="g1" class="cols"></div></div><div class="painel"><h3 id="g2t"></h3><div id="g2" class="hb"></div></div><div class="painel"><h3 id="g3t"></h3><div id="g3" class="hb"></div></div></div>
+    <div class="sec"><p class="eyebrow"><i></i>Evolução</p><h2>Ano do decreto</h2></div>
+    <div class="painel"><h3 id="g1t"></h3><div id="g1" class="cols"></div></div>
+    <div class="sec"><p class="eyebrow"><i></i>Setores</p><h2>Segmentos econômicos</h2></div>
+    <div class="painel"><h3 id="g2t"></h3><div id="g2" class="hb"></div></div>
+    <div class="sec"><p class="eyebrow"><i></i>Regiões</p><h2>Regiões de desenvolvimento</h2></div>
+    <div class="painel"><h3 id="g3t"></h3><div id="g3" class="hb"></div></div>
+    <div class="sec"><p class="eyebrow"><i></i>Municípios</p><h2>Ranking e detalhamento</h2></div>
     <div id="baixo">
       <div class="painel"><h3 id="rk-t">Maiores municípios</h3><div id="rank"></div></div>
       <div class="painel" id="painel-sel"><h3>Município selecionado</h3><div id="sel"><p class="vazio">Clique em um município no mapa ou no ranking para ver o detalhamento.</p></div></div>
@@ -410,9 +420,14 @@ function atualizar(){
   const top = rk.length?rk[0][1]:1;
   $('#rank').innerHTML = rk.length ? rk.map(([i,v],n)=>'<div class="rk'+(i===selMun?' sel':'')+'" data-i="'+i+'"><i>'+(n+1)+'</i><span class="n">'+D.mun[i]+'</span><span class="b"><u style="width:'+(v/top*100)+'%;--cor:'+cor(Math.pow(vmax>vmin?(v-vmin)/(vmax-vmin):.5,g))+'"></u></span><span class="v">'+I.cur(v)+'</span></div>').join('') : '<p class="vazio">Nenhum município com projetos nesta combinação de filtros.</p>';
 
-  graficos(I);
+  graficos(I); avisoDados();
   detalhe();
   rodape();
+}
+function avisoDados(){
+  let n=0,si=0,sj=0; for(const r of D.rec){ if(!passa(r)) continue; n++; if(r[R.inv]===0) si++; if(r[R.job]===0) sj++; }
+  const a=$('#aviso'); a.style.display=n?'':'none';
+  a.innerHTML='<b>Dados incompletos.</b> Na seleção atual, '+nf(si)+' de '+nf(n)+' projetos ('+Math.round(si/n*100)+'%) não têm valor de investimento informado e '+nf(sj)+' ('+Math.round(sj/n*100)+'%) não têm empregos informados. Eles entram nas contagens de empresas e projetos, mas somam zero em investimento e empregos, que por isso são valores mínimos.';
 }
 function graficos(I){
   const grp=(chave)=>{ const m=new Map(); for(const r of D.rec){ if(!passa(r)) continue; const k=r[R[chave]]; let a=m.get(k); if(!a){a={emps:new Set(),proj:0,inv:0,job:0}; m.set(k,a);} a.emps.add(r[R.emp]); a.proj++; a.inv+=r[R.inv]; a.job+=r[R.job]; } return m; };
@@ -430,7 +445,7 @@ function rodape(){
   $('#rodape').innerHTML =
    '<p>Fonte: ADEPE (planilha de novos investimentos, PRODEPE e PROIND) | Elaboração: SDEC-PE / NAIEE.</p>'+
    '<p>Data-base: decretos até '+D.dataBase+'. Valores monetários deflacionados pelo IPCA (IBGE) para preços de '+D.anoBase+', segundo o ano do decreto; em '+D.anoBase+' os dados cobrem apenas parte do ano.</p>'+
-   '<p>Em cinza, municípios sem projetos na seleção atual. Empresas contadas uma única vez em cada município (ou no estado, nos totais), mesmo com mais de um projeto. Os dados não identificam as empresas.</p>';
+   '<p>Projetos sem investimento ou empregos informados na planilha de origem entram como zero nesses indicadores.</p><p>Em cinza, municípios sem projetos na seleção atual. Empresas contadas uma única vez em cada município (ou no estado, nos totais), mesmo com mais de um projeto. Os dados não identificam as empresas.</p>';
 }
 function detalhe(){
   const box = $('#sel');
